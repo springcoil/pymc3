@@ -3,16 +3,18 @@ import unittest
 
 from .checks import close_to
 from .models import simple_categorical, mv_simple, mv_simple_discrete, simple_2model
+from .helpers import SeededTest
 from pymc3.sampling import assign_step_methods, sample
 from pymc3.model import Model
 from pymc3.step_methods import (NUTS, BinaryGibbsMetropolis, CategoricalGibbsMetropolis,
                                 Metropolis, Slice, CompoundStep,
                                 MultivariateNormalProposal, HamiltonianMC)
-from pymc3.distributions import Binomial, Normal, Bernoulli, Categorical
+from pymc3.distributions import Binomial, Normal, Bernoulli, Categorical, Uniform
 
 from numpy.testing import assert_array_almost_equal
 import numpy as np
 from tqdm import tqdm
+from scipy import stats
 
 
 class TestStepMethods(object):  # yield test doesn't work subclassing unittest.TestCase
@@ -238,3 +240,36 @@ class TestAssignStepMethods(unittest.TestCase):
             Binomial('x', 10, 0.5)
             steps = assign_step_methods(model, [])
         self.assertIsInstance(steps, Metropolis)
+
+
+class TestSampleEstimates(SeededTest):
+    def test_parameter_estimate(self):
+        alpha_true, sigma_true = 1, 0.5
+        beta_true = np.array([1, 2.5])
+
+        size = 100
+
+        X1 = np.random.randn(size)
+        X2 = np.random.randn(size) * 0.2
+        Y = alpha_true + beta_true[0] * X1 + beta_true[1] * X2 + np.random.randn(size) * sigma_true
+
+        with Model() as model:
+            alpha = Normal('alpha', mu=0, sd=10)
+            beta = Normal('beta', mu=0, sd=10, shape=2)
+            sigma = Uniform('sigma', lower=0.0, upper=1.0)
+            mu = alpha + beta[0] * X1 + beta[1] * X2
+            Y_obs = Normal('Y_obs', mu=mu, sd=sigma, observed=Y)
+
+            for step_method in (NUTS(), Metropolis(),
+                                [Slice([alpha, sigma]), Metropolis([beta])]):
+                trace = sample(1000, step=step_method, progressbar=False)
+
+                np.testing.assert_array_almost_equal(np.median(trace.beta, 0), beta_true, decimal=1)
+                np.testing.assert_array_almost_equal(np.median(trace.alpha), alpha_true, decimal=1)
+                np.testing.assert_array_almost_equal(np.median(trace.sigma), sigma_true, decimal=1)
+                # Using the Normal test from SciPy `scipy.stats.normaltest`
+                # See `https://github.com/scipy/scipy/blob/v0.18.1/scipy/stats/stats.py#L1352`
+                _, test_normal_beta = stats.normaltest(trace.beta[:,1])
+                _, tests_uniform = stats.normaltest(trace.sigma)
+                np.testing.assert_array_less(test_normal_beta, 0.005)
+                np.testing.assert_array_less(test_normal_beta, 0.05)
