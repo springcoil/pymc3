@@ -12,3 +12,4 @@ mock>=2.0.0; python_version < '3.4'
 pyflakes>=1.5.0
 pycodestyle>=2.3.1
 nose-parameterized==0.6.0
+mistune>=2.0.1 # not directly required, pinned by Snyk to avoid a vulnerability
