@@ -1,10 +1,10 @@
-numpy>=1.11.0
-scipy>=0.12.0
+numpy>=1.22.2
+scipy>=1.10.0rc1
 h5py>=2.7.0
 numdifftools>=0.9.20
 CommonMark>=0.5.4
 recommonmark>=0.4.0
-sphinx>=1.5.5
+sphinx>=3.3.0
 nbsphinx>=0.2.13
 pytest>=3.0.7
 pytest-cov>=2.5.1
@@ -12,3 +12,12 @@ mock>=2.0.0; python_version < '3.4'
 pyflakes>=1.5.0
 pycodestyle>=2.3.1
 nose-parameterized==0.6.0
+certifi>=2023.7.22 # not directly required, pinned by Snyk to avoid a vulnerability
+idna>=3.7 # not directly required, pinned by Snyk to avoid a vulnerability
+jinja2>=3.1.4 # not directly required, pinned by Snyk to avoid a vulnerability
+jupyter-core>=4.11.2 # not directly required, pinned by Snyk to avoid a vulnerability
+mistune>=2.0.3 # not directly required, pinned by Snyk to avoid a vulnerability
+nbconvert>=6.3.0b0 # not directly required, pinned by Snyk to avoid a vulnerability
+pygments>=2.15.0 # not directly required, pinned by Snyk to avoid a vulnerability
+requests>=2.31.0 # not directly required, pinned by Snyk to avoid a vulnerability
+setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
